@@ -1,9 +1,15 @@
 import sqlite3
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parents[2]  # backend/app/..
-DB_PATH = BASE_DIR / "data" / "logging.db"
+# Use mounted volume path in production, local path in development
+DATA_DIR = Path(os.getenv("DATABASE_PATH", Path(__file__).resolve().parents[2] / "data")).parent
+if os.getenv("DATABASE_PATH"):
+    DATA_DIR = Path("/data")
+
+DB_PATH = DATA_DIR / "logging.db"
+ARCHIVE_DIR = DATA_DIR / "archives"
 
 def get_conn():
     DB_PATH.parent.mkdir(exist_ok=True)

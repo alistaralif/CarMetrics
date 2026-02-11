@@ -20,26 +20,38 @@ async def fetch_html(context, url: str) -> str:
     await page.close()
     return html
 
+
 MAX_SAFE_URLS = 20
 FETCH_DELAY_SECONDS = 2.5  # Delay between each fetch to avoid rate limiting
 
 async def scrape_listings(urls: list[str]):
     if len(urls) > MAX_SAFE_URLS:
         raise ValueError("URL batch exceeds limit.")
-    
+
     results = []
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--no-zygote",
+                "--single-process",
+                "--disable-software-rasterizer",
+            ]
+        )
         context = await browser.new_context(
             user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         )
 
-        # Sequential fetching with delays to avoid rate limiting
+# Sequential fetching with delays to avoid rate limiting
         for i, url in enumerate(urls):
             if i > 0:
                 await asyncio.sleep(FETCH_DELAY_SECONDS)
-            
+
             try:
                 html = await fetch_html(context, url)
                 results.append(parse_listing(html, url))

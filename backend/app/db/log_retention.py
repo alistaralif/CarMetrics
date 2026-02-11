@@ -1,12 +1,13 @@
 import sqlite3
 import csv
 import gzip
-from datetime import datetime,timezone
+import os
+from datetime import datetime, timezone
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parents[2]
-DB_PATH = BASE_DIR / "data" / "logging.db"
-ARCHIVE_DIR = BASE_DIR / "data" / "archives"
+DATA_DIR = Path("/data") if os.getenv("DATABASE_PATH") else Path(__file__).resolve().parents[2] / "data"
+DB_PATH = DATA_DIR / "logging.db"
+ARCHIVE_DIR = DATA_DIR / "archives"
 
 def archive_completed_months():
     """

@@ -2,9 +2,12 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
+import os
 
-BASE_DIR = Path(__file__).resolve().parents[2]
-DB_PATH = BASE_DIR / "data" / "cache.db"
+# Use mounted volume path in production, local path in development
+DATA_DIR = Path("/data") if os.getenv("DATABASE_PATH") else Path(__file__).resolve().parents[2] / "data"
+
+DB_PATH = DATA_DIR / "cache.db"
 TTL_HOURS = 24 * 3 # 3 days
 
 def get_conn():

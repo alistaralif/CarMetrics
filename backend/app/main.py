@@ -1,4 +1,5 @@
 import time
+import os
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException, RequestValidationError
@@ -32,6 +33,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",  # Next.js dev
+        "https://carmetrics.fly.dev",  # Production frontend
     ],
     allow_credentials=True,
     allow_methods=["*"],        # allows OPTIONS, POST, etc

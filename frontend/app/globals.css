@@ -55,6 +55,7 @@ body {
   
   display: flex;
   flex-direction: column;
+  min-width: 300px;
   width: 100%;
   overflow-x: hidden;
   overflow-y: visible;
@@ -287,9 +288,9 @@ a {
 
 /* Finance Card Table */
 .finance-table-wrapper {
-  /* border: 1px solid green; */
-  justify-items: center;
-  
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .finance-table {
