@@ -6,21 +6,35 @@ const API_BASE =
 export async function scrapeCars(
   payload: ScrapeRequest
 ): Promise<{ data?: CarListing[]; error?: ApiError; requestId?: string }> {
-  const res = await fetch(`${API_BASE}/api/scrape`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 min timeout
 
-  const requestId = res.headers.get("X-Request-ID") ?? undefined;
+  try {
+    const res = await fetch(`${API_BASE}/api/scrape`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
 
-  if (!res.ok) {
-    const err = (await res.json()) as ApiError;
-    return { error: err, requestId };
+    clearTimeout(timeoutId);
+
+    const requestId = res.headers.get("X-Request-ID") ?? undefined;
+
+    if (!res.ok) {
+      const err = (await res.json()) as ApiError;
+      return { error: err, requestId };
+    }
+
+    const data = (await res.json()) as CarListing[];
+    return { data, requestId };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      return { error: { error: "timeout", message: "Request timed out. Try fewer links." } as ApiError };
+    }
+    throw error;
   }
-
-  const data = (await res.json()) as CarListing[];
-  return { data, requestId };
 }
