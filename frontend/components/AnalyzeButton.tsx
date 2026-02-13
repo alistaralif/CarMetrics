@@ -3,51 +3,36 @@ import { useState, useEffect } from "react";
 export default function AnalyzeButton({
   loading,
   onClick,
-  onComplete,
+  isComplete,
 }: {
   loading: boolean;
   onClick: () => void;
-  onComplete?: () => void;
+  isComplete?: boolean;
 }) {
   const [progress, setProgress] = useState(0);
-  const [showComplete, setShowComplete] = useState(false);
 
   useEffect(() => {
     if (!loading) {
-      if (progress > 0 && !showComplete) {
-        // Jump to 100% when loading completes
+      if (isComplete) {
+        // Jump to 100% when have results
         setProgress(100);
-        setShowComplete(true);
+        const timeout = setTimeout(() => setProgress(0), 500);
+        return () => clearTimeout(timeout);
       }
+      setProgress(0);
       return;
     }
 
-    setShowComplete(false);
-
-    // Smooth gradual acceleration
+    // Animate progress while loading (caps at 90%)
     const interval = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 95) return prev + 0.2;
+        if (prev >= 90) return 90; // Cap at 90% until complete
         return prev + 0.5;
       });
     }, 100);
 
     return () => clearInterval(interval);
-  }, [loading, progress, showComplete]);
-
-  // Handle completion with delay
-  useEffect(() => {
-    if (showComplete && progress === 100) {
-      const timeout = setTimeout(() => {
-        if (onComplete) {
-          onComplete();
-        }
-        setProgress(0);
-        setShowComplete(false);
-      }, 500);
-      return () => clearTimeout(timeout);
-    }
-  }, [showComplete, progress, onComplete]);
+  }, [loading, isComplete]);
 
   // Circle progress calculation
   const radius = 8;
@@ -61,7 +46,7 @@ export default function AnalyzeButton({
         onClick={onClick}
         disabled={loading}
       >
-        {loading || showComplete ? (
+        {loading ? (
           <span className="loading-content">
             <svg
               className="progress-ring"
@@ -69,7 +54,6 @@ export default function AnalyzeButton({
               height="20"
               viewBox="0 0 20 20"
             >
-              {/* Background circle */}
               <circle
                 cx="10"
                 cy="10"
@@ -79,7 +63,6 @@ export default function AnalyzeButton({
                 fill="none"
                 opacity="0.2"
               />
-              {/* Progress circle */}
               <circle
                 cx="10"
                 cy="10"

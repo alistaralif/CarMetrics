@@ -10,34 +10,46 @@ import AnalyzeButton from "@/components/AnalyzeButton";
 
 export default function QuickStart() {
   const [loading, setLoading] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
   const router = useRouter();
   const { setResults, links, setLinks } = useResults();
 
   async function handleAnalyze() {
     setLoading(true);
+    setIsComplete(false);
+    console.log("[QuickStart] Starting analysis with links:", links);
 
     try {
-      const { data, error } = await scrapeCars({
+      const { data, error, requestId } = await scrapeCars({
         urls: links,
         userrole: "free",
       });
 
+      console.log("[QuickStart] API response received:", { data, error, requestId });
+
       if (error || !data) {
+        console.error("[QuickStart] API error:", error);
         alert(error?.message ?? "Unknown error");
+        setLoading(false);
         return;
       }
 
+      console.log("[QuickStart] Setting results:", data.length, "items");
       setResults(data);
+      setIsComplete(true);
+      setLoading(false);
+
+      // Navigate after a short delay to show completion
+      setTimeout(() => {
+        console.log("[QuickStart] Navigating to /analysis");
+        router.push("/analysis");
+      }, 500);
     } catch (error) {
-      console.error(error);
+      console.error("[QuickStart] Unexpected error:", error);
+      alert("An unexpected error occurred");
+      setLoading(false);
     }
-
-    setLoading(false);
   }
-
-  const handleComplete = () => {
-    router.push("/analysis");
-  };
 
   return (
     <main className="page">
@@ -53,7 +65,7 @@ export default function QuickStart() {
       <AnalyzeButton
         loading={loading}
         onClick={handleAnalyze}
-        onComplete={handleComplete}
+        isComplete={isComplete}
       />
     </main>
   );
