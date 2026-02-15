@@ -49,7 +49,7 @@ export default function LinkInput({
       <div className="link-chips">
         {links.map((link, idx) => (
           <div key={idx} className="chip">
-            {link}
+            <span>{link}</span>
             <button onClick={() => removeLink(idx)}>×</button>
           </div>
         ))}

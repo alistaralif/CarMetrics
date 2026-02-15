@@ -36,7 +36,7 @@ html {
   height:100%;
   overflow-x: hidden;
   overflow-y: scroll;
-  scroll-behavior: smooth;
+  /* scroll-behavior: smooth; */
   font-size: clamp(14px, 2vw, 16px);
 }
 
@@ -227,10 +227,12 @@ a {
   margin-top: 0px;
   margin-bottom: 20px;
 }
+
 .quickstart-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 24px;
+  align-items: start;
 }
 
 @media (max-width: 768px) {
@@ -244,8 +246,8 @@ a {
   padding: 24px;
   border-radius: var(--border-radius);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  min-height: 30vw;
-  overflow-y: auto;
+  /* min-height: 30vw; */
+  /* overflow-y: auto; */
 }
 
 .card h3 {
@@ -345,9 +347,43 @@ a {
 
 .link-chips {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 8px;
   margin-top: 12px;
+}
+
+.chip {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  background: var(--chip-bg);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  width: 100%;
+  word-break: break-all;
+  gap: 8px;
+}
+
+.chip span {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.chip button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+  padding: 0;
+  margin-right: 0;
+}
+
+.chip button:hover {
+  color: var(--primary);
 }
 
 .link-disclaimer {
@@ -355,29 +391,6 @@ a {
   color: #888;
   margin-top: 30px;
   font-style: italic;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  background: var(--chip-bg);
-  padding: 8px 12px;
-  border-radius: 20px;
-  font-size: 0.875rem;
-}
-
-.chip button {
-  margin-left: 8px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #666;
-  font-size: 1rem;
-  line-height: 1;
-}
-
-.chip button:hover {
-  color: #333;
 }
 
 .analyze-wrapper {
