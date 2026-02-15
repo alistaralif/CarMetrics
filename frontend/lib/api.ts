@@ -43,3 +43,45 @@ export async function scrapeCars(
     throw error;
   }
 }
+
+interface PrecacheResponse {
+  status: string;
+  url: string;
+  cached: boolean;
+}
+
+/**
+ * Pre-cache a single URL in the background.
+ * This triggers scraping and caching but doesn't return analysis data.
+ */
+export async function precacheUrl(url: string): Promise<PrecacheResponse> {
+  const startTime = performance.now();
+  console.log(`[API] Precache request started for: ${url}`);
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/precache`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ url }),
+    });
+
+    const elapsed = Math.round(performance.now() - startTime);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`[API] Precache failed (${res.status}) after ${elapsed}ms:`, errorText);
+      throw new Error(`Precache failed: ${res.statusText}`);
+    }
+
+    const data = await res.json() as PrecacheResponse;
+    console.log(`[API] Precache response (${elapsed}ms):`, data);
+    
+    return data;
+  } catch (error) {
+    const elapsed = Math.round(performance.now() - startTime);
+    console.error(`[API] Precache error after ${elapsed}ms:`, error);
+    throw error;
+  }
+}

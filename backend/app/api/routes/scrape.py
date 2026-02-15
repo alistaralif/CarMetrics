@@ -36,7 +36,7 @@ async def scrape(payload: ScrapeRequest, request: Request):
     role = payload.userrole.lower()
 
     if not urls:
-        raise HTTPException(status_code=400, detail="URL list cannot be empty")
+        raise HTTPException(status_code=400, detail="URL list cannot be empty. Paste at least one URL from Sgcarmart and press Enter.")
 
     config = RATE_LIMITS.get(role, RATE_LIMITS["free"])
     

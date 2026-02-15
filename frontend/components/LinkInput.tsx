@@ -39,7 +39,7 @@ export default function LinkInput({
       <h2>Listings</h2>
       <textarea
         className="link-input"
-        placeholder="Paste links and press Enter (supports multiple links)"
+        placeholder="Paste links and press Enter"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={addLinks}

@@ -4,17 +4,18 @@ export default function AnalyzeButton({
   loading,
   onClick,
   isComplete,
+  linkCount = 1,
 }: {
   loading: boolean;
   onClick: () => void;
   isComplete?: boolean;
+  linkCount?: number;
 }) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     if (!loading) {
       if (isComplete) {
-        // Jump to 100% when have results
         setProgress(100);
         const timeout = setTimeout(() => setProgress(0), 500);
         return () => clearTimeout(timeout);
@@ -23,18 +24,25 @@ export default function AnalyzeButton({
       return;
     }
 
-    // Animate progress while loading (caps at 90%)
+    // Calculate increment based on expected time
+    // Assume ~5-10 seconds per link, cap at 90% over that time
+    const estimatedTimeMs = Math.max(linkCount * 7000, 10000); // min 10 seconds
+    const targetProgress = 90;
+    const updateIntervalMs = 200;
+    const totalUpdates = estimatedTimeMs / updateIntervalMs;
+    const incrementPerUpdate = targetProgress / totalUpdates;
+
     const interval = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 90) return 90; // Cap at 90% until complete
-        return prev + 0.5;
+        if (prev >= 90) return 90;
+        return Math.min(prev + incrementPerUpdate, 90);
       });
-    }, 100);
+    }, updateIntervalMs);
 
     return () => clearInterval(interval);
-  }, [loading, isComplete]);
+  }, [loading, isComplete, linkCount]);
 
-  // Circle progress calculation
+// Circle progress calculation
   const radius = 8;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;

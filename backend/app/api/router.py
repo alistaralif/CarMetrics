@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.routes import scrape
+from app.api.routes import scrape, precache
 
 api_router = APIRouter()
 
@@ -8,4 +8,11 @@ api_router.include_router(
     scrape.router,
     prefix="/scrape",
     tags=["scrape"],
+)
+
+# Pre-caching endpoint
+api_router.include_router(
+    precache.router,
+    prefix="/precache",
+    tags=["precache"],
 )
