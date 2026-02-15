@@ -1,5 +1,6 @@
 import time
 import os
+import logging
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import HTTPException, RequestValidationError
@@ -12,6 +13,11 @@ from app.db.log_retention import archive_completed_months
 from http import HTTPStatus
 from fastapi.middleware.cors import CORSMiddleware
 import uuid
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

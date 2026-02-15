@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 from app.models.car import CarListing
 from app.services.scraper import scrape_listings
@@ -9,19 +9,23 @@ from app.db.cache import get_cached_listing, upsert_listing
 
 router = APIRouter()
 
-# Rate limit config (URLs per window)
 RATE_LIMITS = {
-    "free": {"max_urls": 10, "window_seconds": 120},      # 10 URLs per 2 min
-    "premium": {"max_urls": 20, "window_seconds": 120},   # 20 URLs per 2 min
+    "free": {"max_urls": 10, "window_seconds": 120},
+    "premium": {"max_urls": 20, "window_seconds": 120},
 }
 
 class ScrapeRequest(BaseModel):
     urls: List[str]
     userrole: str = "free"
 
+class ScrapeResponse(BaseModel):
+    results: List[CarListing]
+    failed_urls: List[str] = []
+    message: Optional[str] = None
+
 @router.post(
     "",
-    response_model=List[CarListing],
+    response_model=ScrapeResponse,
     summary="Scrape and analyse car listings",
 )
 async def scrape(payload: ScrapeRequest, request: Request):
@@ -34,17 +38,15 @@ async def scrape(payload: ScrapeRequest, request: Request):
     if not urls:
         raise HTTPException(status_code=400, detail="URL list cannot be empty")
 
-    # Get rate limit config
     config = RATE_LIMITS.get(role, RATE_LIMITS["free"])
     
-    # Use IP as rate limit key
     ip = (
         request.headers.get("fly-client-ip")
         or request.headers.get("x-forwarded-for", "").split(",")[0].strip()
         or (request.client.host if request.client else "unknown")
     )
     
-    # Check cache first - separate cached vs uncached URLs
+    # Check cache first
     results = []
     urls_to_scrape = []
     
@@ -54,6 +56,8 @@ async def scrape(payload: ScrapeRequest, request: Request):
             results.append(cached)
         else:
             urls_to_scrape.append(url)
+    
+    failed_urls = []
     
     # Only rate limit and scrape uncached URLs
     if urls_to_scrape:
@@ -67,15 +71,16 @@ async def scrape(payload: ScrapeRequest, request: Request):
         if not allowed:
             raise HTTPException(
                 status_code=429,
-                detail=f"Rate limit exceeded. Try again in {wait_time} seconds.",
+                detail=f"Rate limit exceeded. Try again in {int(wait_time)} seconds."
             )
         
         # Scrape uncached URLs
-        scraped = await scrape_listings(urls_to_scrape)
+        scraped, failed_urls = await scrape_listings(urls_to_scrape)
         
-        # Cache the new results
+        # Cache the new results (only successful ones with valid data)
         for listing in scraped:
-            upsert_listing(listing.url, listing.model_dump())
+            if listing and listing.url:
+                upsert_listing(listing.url, listing.model_dump())
         
         results.extend(scraped)
 
@@ -83,4 +88,12 @@ async def scrape(payload: ScrapeRequest, request: Request):
     request.state.userrole = role
     request.state.url_count = len(urls)
     
-    return results
+    message = None
+    if failed_urls:
+        message = f"{len(failed_urls)} link(s) could not be scraped"
+    
+    return ScrapeResponse(
+        results=results,
+        failed_urls=failed_urls,
+        message=message
+    )

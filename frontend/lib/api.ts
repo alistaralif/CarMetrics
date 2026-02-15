@@ -1,13 +1,13 @@
-import { ScrapeRequest, CarListing, ApiError } from "./types";
+import { ScrapeRequest, CarListing, ApiError, ScrapeResponse } from "./types";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
 
 export async function scrapeCars(
   payload: ScrapeRequest
-): Promise<{ data?: CarListing[]; error?: ApiError; requestId?: string }> {
+): Promise<{ data?: CarListing[]; error?: ApiError; requestId?: string; failedUrls?: string[]; message?: string }> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 min timeout
+  const timeoutId = setTimeout(() => controller.abort(), 120000);
 
   try {
     const res = await fetch(`${API_BASE}/api/scrape`, {
@@ -28,8 +28,13 @@ export async function scrapeCars(
       return { error: err, requestId };
     }
 
-    const data = (await res.json()) as CarListing[];
-    return { data, requestId };
+    const response = (await res.json()) as ScrapeResponse;
+    return { 
+      data: response.results, 
+      requestId,
+      failedUrls: response.failed_urls,
+      message: response.message
+    };
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {

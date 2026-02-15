@@ -20,18 +20,24 @@ export default function QuickStart() {
     console.log("[QuickStart] Starting analysis with links:", links);
 
     try {
-      const { data, error, requestId } = await scrapeCars({
+      const { data, error, requestId, failedUrls, message } = await scrapeCars({
         urls: links,
         userrole: "free",
       });
 
-      console.log("[QuickStart] API response received:", { data, error, requestId });
+      console.log("[QuickStart] API response received:", { data, error, requestId, failedUrls });
 
       if (error || !data) {
         console.error("[QuickStart] API error:", error);
         alert(error?.message ?? "Unknown error");
         setLoading(false);
         return;
+      }
+
+      // Notify user of failed URLs
+      if (failedUrls && failedUrls.length > 0) {
+        console.warn("[QuickStart] Failed URLs:", failedUrls);
+        alert(`${message}\n\nFailed links:\n${failedUrls.join("\n")}`);
       }
 
       console.log("[QuickStart] Setting results:", data.length, "items");

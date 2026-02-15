@@ -53,3 +53,9 @@ export interface ApiError {
   message: string;
   request_id?: string;
 }
+
+export interface ScrapeResponse {
+  results: CarListing[];
+  failed_urls: string[];
+  message?: string;
+}
